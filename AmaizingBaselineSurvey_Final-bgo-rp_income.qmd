@@ -1,0 +1,224 @@
+---
+title: "Amaizing  Baseline Survey_Final-bgo-rp_income"
+author: "Njambi"
+format: html
+editor: visual
+---
+
+## 
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Clear the environment
+
+```{r}
+
+rm(list = ls())
+
+```
+
+## Loading necessary libraries
+
+```{r, include=FALSE}
+
+library(tidyverse) # includes the dplyr, ggplot2, tidyr, readr, stringr, forcats, tibble packages
+library(readxl)
+library(Hmisc)
+library(labelled)
+library(magrittr)
+library(datawizard)
+library(gtsummary)
+library(gt)
+library(kableExtra)
+library(flextable)
+library(splitstackshape)
+library(lubridate)
+library(foreign)
+library(haven)
+
+#library(ggplot2)
+#library(tidyr)
+#library(tibble)
+#library(dplyr)
+#library(stringr)
+
+```
+
+## Set the working directory
+
+```{r}
+# Set working directory (Not necessary since the current wd is the correct wd)
+
+setwd("C:\\Users\\awanjau\\OneDrive - CGIAR\\Alliance\\Alliance_2024\\AMAZING\\AmazingBaselineDataCleaning\\Amaizing  Baseline Survey_Final-bgo-rp_income")
+      
+```
+
+## Loading data
+
+```{r}
+# Read a csv file
+
+amaizing_income_path <- "C:\\Users\\awanjau\\OneDrive - CGIAR\\Alliance\\Alliance_2024\\AMAZING\\aMaizingBaseline_Files\\Amaizing  Baseline Survey_Final-bgo-rp_income.csv"
+
+amaizing_income <- read_csv(amaizing_income_path)
+
+dim(amaizing_income) # 3209    7
+
+```
+
+```{r}
+
+names(amaizing_income)
+```
+
+```{r}
+unique(amaizing_income$oindex2)
+
+
+```
+
+```{r}
+
+incomesource_levels <- c("Selling of crop residue (by product)", "Rented out oxen for ploughing", "Salaried employment", "Casual non-farm labour", "Casual farm labour", "Non-farm agribusiness NET income (e.g. grain mill)", "Other business NET income (shops, trade, tailor, etc)", "Pension income", "Drought relief", "Safety net or food for work", "Remittances (sent from non-resident family and relatives living elsewhere)", "Marriage Gifts", "Sale of own trees (firewood, etc)", 
+"Sale of dung /Manure",   "Sales from CPRs (firewood, charcoal making etc)",  "Rental of property (other than land)",   "Cash Transfer",  "Dividends",   "No Income", "Other Specify 1",  "Other Specify 2", "Other Specify 3"         
+                         )  
+
+amaizing_income <- amaizing_income %>%
+  mutate(
+    oindex2 = factor(
+      oindex2, 
+      levels = c(1:18, 100, -222, -221, -223 ), 
+      labels = incomesource_levels
+    )
+  
+  ) 
+
+```
+
+```{r}
+unique(amaizing_income$oindex2)
+
+
+```
+
+```{r}
+unique(amaizing_income$oname)
+
+
+```
+
+The column `oname` included text entry from "other specify", which has not been cleaned and harmonized.
+
+```{r}
+
+
+amaizing_income <- amaizing_income %>%
+  mutate(
+    oname = factor(oname )
+  )
+```
+
+```{r}
+unique(amaizing_income$oname)
+
+```
+
+```{r}
+
+column_labels <- c(
+  
+oindex1 = "Income repeat iteration/index",
+oindex2 = "Income source level/category selected",
+oname =  "Income source label/name corresponding to oindex2",
+o3 = "total income earned from oname in Ksh",
+PARENT_KEY = "Parent key",
+KEY = "Key",
+`SET-OF-rp_income` = "Income repeat group ID"
+
+)
+
+```
+
+```{r}
+
+# Rename columns with characters not supported by stata
+
+amaizing_income <- amaizing_income %>%
+  
+  rename(SET_OF_rp_income = `SET-OF-rp_income`
+    
+         )
+
+```
+
+```{r}
+# Set variable/column labels
+ 
+amaizing_income <- amaizing_income %>%
+  
+  set_variable_labels(.labels = column_labels)   # Requires package labelled
+```
+
+Using the function View() to open the new data in a spreadsheet reveals the column names and labels.
+
+```{r}
+
+# View(amaizing_income)
+
+```
+
+## Generate a data dictionary
+
+```{r}
+# Data dictionary
+
+amaizing_income_dict <- look_for(amaizing_income, labels = TRUE, values = TRUE) %>%
+  dplyr::select(-c(missing, value_labels))
+
+  gt(amaizing_income_dict)
+
+```
+
+## Export data dictionary to CSV
+
+```{r}
+
+readr::write_csv(amaizing_income_dict, "amaizing_income_dict.csv")
+
+```
+
+## Export data to CSV
+
+```{r}
+
+readr::write_csv(amaizing_income, "amaizing_income.csv")
+
+```
+
+## Save as R data
+
+```{r}
+
+save(amaizing_income, file = "amaizing_income.RData")
+
+#View(amaizing_income)
+```
+
+## Export data to SPSS
+
+```{r}
+
+write.foreign(amaizing_income, "amaizing_income.sav", "amaizing_income", package = "SPSS")
+
+```
+
+## Export data to STATA
+
+```{r}
+
+write_dta(amaizing_income, "amaizing_income.dta")
+
+```
